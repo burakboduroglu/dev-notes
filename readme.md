@@ -3,36 +3,43 @@
 </p>
 
 <p align="center">
-  <strong>devnote</strong>
+  <strong>Kişisel Programlama Notları Kitaplığı</strong>
 </p>
 
-<h1 align="center">Kişisel Programlama Notları Kitaplığı</h1>
+<h1 align="center">devnote</h1>
 
 <p align="center">
-  Java, JavaScript, Python, SQL ve MongoDB notları tek yerde. Markdown odaklı, hızlı aranabilir, CLI ve web arayüzü ile gezilebilir.
+  Kişisel programlama notları kitaplığı. Java, JavaScript, Python, SQL ve MongoDB notlarını tek yerde toplar; CLI, TUI ve web arayüzü ile hızlıca gezilir.
 </p>
 
 <p align="center">
-  <strong>Sıfır bağımlılık</strong>
+  <a href="#genel-bakış">Genel Bakış</a>
   &nbsp;·&nbsp;
-  <strong>İnteraktif TUI</strong>
+  <a href="#hızlı-görünüm">Hızlı Görünüm</a>
   &nbsp;·&nbsp;
-  <strong>Tarayıcı tabanlı okuyucu</strong>
+  <a href="#kullanım">Kullanım</a>
+  &nbsp;·&nbsp;
+  <a href="#web-ui">Web UI</a>
+  &nbsp;·&nbsp;
+  <a href="#katkıda-bulunanlar">Katkıda Bulunanlar</a>
 </p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/devnotetr"><img src="https://img.shields.io/npm/v/devnotetr.svg" alt="npm version"></a>
   <a href="https://www.npmjs.com/package/devnotetr"><img src="https://img.shields.io/npm/dm/devnotetr.svg" alt="npm downloads"></a>
   <a href="LICENSE.md"><img src="https://img.shields.io/npm/l/devnotetr.svg" alt="license"></a>
+  <img src="https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white" alt="node version">
 </p>
 
 ---
 
 ## Genel Bakış
 
-devnote, kişisel çalışma notlarını düzenli bir kitaplık halinde toplar. Her not Markdown formatındadır; istersen terminalden ara, istersen tarayıcıdan oku, istersen editörde aç.
+devnote, kişisel çalışma notlarını düzenli bir kitaplık halinde toplar. Her not Markdown formatındadır; terminalden ara, editörde aç ya da tarayıcıda oku.
 
-## Hızlı Bakış
+İçerik, ağır bir uygulama katmanı yerine doğrudan dosya yapısı üzerinden yönetilir. Bu yüzden hızlıdır, taşınması kolaydır ve arşiv mantığıyla uzun süre kullanılabilir.
+
+## Hızlı Görünüm
 
 | Alan       | İçerik                                               |
 | ---------- | ---------------------------------------------------- |
@@ -42,23 +49,32 @@ devnote, kişisel çalışma notlarını düzenli bir kitaplık halinde toplar. 
 | SQL        | Temel sorgular, ileri SQL, psql terminal kullanımı   |
 | MongoDB    | Temel CRUD ve sorgulama                              |
 
+## Neler Sunar?
+
+| Deneyim  | Ne yapar                                            |
+| -------- | --------------------------------------------------- |
+| CLI      | Notları listeler, arar ve açar                      |
+| TUI      | Kategori, not ve açma modunu etkileşimli seçtirir   |
+| Web UI   | Kategori filtreleme ve anlık arama sağlar           |
+| Markdown | İçerik sade, taşınabilir ve versiyonlanabilir kalır |
+
 ## Kullanım
 
 Node.js kurulu olması yeterlidir; harici paket gerekmez.
 
 ### Komutlar
 
-| Komut                                      | Açıklama                             |
-| ------------------------------------------ | ------------------------------------ |
-| `devnote help`                             | Komutları göster                     |
-| `devnote list`                             | Tüm notları listele                  |
-| `devnote list --cat java`                  | Java kategorisindeki notları göster  |
-| `devnote list --cat py --search temel`     | Python notları arasında "temel" ara  |
-| `devnote search hibernate`                 | Tüm notlarda "hibernate" araması yap |
-| `devnote open 3`                           | 3 numaralı notu editörde aç          |
-| `devnote open --tui`                       | İnteraktif TUI modunu başlat         |
-| `devnote open --editor`                    | Web arayüzünü tarayıcıda aç          |
-| `devnote open --browser 6`                 | 6 numaralı notu tarayıcıda aç        |
+| Komut                                  | Açıklama                             |
+| -------------------------------------- | ------------------------------------ |
+| `devnote help`                         | Komutları göster                     |
+| `devnote list`                         | Tüm notları listele                  |
+| `devnote list --cat java`              | Java kategorisindeki notları göster  |
+| `devnote list --cat py --search temel` | Python notları arasında "temel" ara  |
+| `devnote search hibernate`             | Tüm notlarda "hibernate" araması yap |
+| `devnote open 3`                       | 3 numaralı notu editörde aç          |
+| `devnote open --tui`                   | İnteraktif TUI modunu başlat         |
+| `devnote open --editor`                | Web arayüzünü tarayıcıda aç          |
+| `devnote open --browser 6`             | 6 numaralı notu tarayıcıda aç        |
 
 ### TUI Tuş Kombinasyonları
 
@@ -68,19 +84,19 @@ Node.js kurulu olması yeterlidir; harici paket gerekmez.
 2. Markdown notunu seç.
 3. Açma modunu seç: Markdown önizle, editörde aç veya tarayıcıda aç.
 
-| Tuş       | Eylem                  |
-| --------- | ---------------------- |
-| ↑ / ↓     | Gezin                  |
-| Enter     | Seçili adımı çalıştır  |
-| p         | Markdown önizle        |
-| e         | Editörde aç            |
-| b         | Tarayıcıda aç          |
-| Backspace | Geri                   |
-| q         | Çık                    |
+| Tuş       | Eylem                 |
+| --------- | --------------------- |
+| ↑ / ↓     | Gezin                 |
+| Enter     | Seçili adımı çalıştır |
+| p         | Markdown önizle       |
+| e         | Editörde aç           |
+| b         | Tarayıcıda aç         |
+| Backspace | Geri                  |
+| q         | Çık                   |
 
 ## Web UI
 
-`library/index.html` dosyası üzerinden çalışan basit bir arayüz vardır.
+`library/index.html` dosyası üzerinden çalışan basit bir arayüz vardır. Hedef, notu hızlıca bulup bağlamından kopmadan okumaktır.
 
 - Kategori filtreleme
 - Anlık arama
@@ -98,6 +114,14 @@ devnote help
 ```
 
 Paket sayfası: [npmjs.com/package/devnotetr](https://www.npmjs.com/package/devnotetr)
+
+İstersen doğrudan depoyu klonlayıp yerelde de kullanabilirsin:
+
+```bash
+git clone https://github.com/burakboduroglu/dev-notes.git
+cd dev-notes
+node library/cli.js help
+```
 
 ## Proje Yapısı
 
@@ -125,8 +149,20 @@ dev-notes/
   library/
     index.html          Web UI
     cli.js              CLI aracı
-    README.md           Kitaplık giriş noktası
+    readme.md           Kitaplık giriş noktası
 ```
+
+## Katkıda Bulunanlar
+
+Bu depo şu anda ağırlıklı olarak tek kişi tarafından sürdürülüyor; yine de katkı listesi zamanla büyüyebilir.
+
+<p align="center">
+  <a href="https://github.com/burakboduroglu/dev-notes/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=burakboduroglu/dev-notes" alt="contributors">
+  </a>
+</p>
+
+Katkı geçmişini görmek için [GitHub contributors grafiğine](https://github.com/burakboduroglu/dev-notes/graphs/contributors) bakabilirsin.
 
 ## Lisans
 
