@@ -1,31 +1,18 @@
-### About Python-Notes 🚀👩‍🚀
+### About Python-Notes 🚀
 
-- This repository contains notes on Python programming language.
-- The notes are written in Markdown format.
+Kişisel Python notları — Markdown formatında düzenlenmiştir.
 
 ### Table of Contents 📚
 
-| File Name                                                                                                                | Topics                                        |
-| ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- |
-| [python_basic_1.md ](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/python_basic_1.md)       | Python Data Structures                        |
-| [python_basic_2.md ](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/python_basic_2.md)       | Python functions, loops, conditions           |
-| [python_basic_3.md ](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/python_basic_3.md)       | Error Handling, File Process                  |
-| [python_db_process.md ](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/python_db_process.md) | Database Process                              |
-| [advanced_python_1 ](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/advanced_python_1.md)    | Python Comprehensions                         |
-| [advanced_python_2 ](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/advanced_python_2.md)    | Python useful functions (map, filter, reduce) |
+| File Name | Topics |
+| --------- | ------ |
+| [python_basic_1.md](python_basic_1.md) | Data structures |
+| [python_basic_2.md](python_basic_2.md) | Functions, loops, conditions |
+| [python_basic_3.md](python_basic_3.md) | Error handling, files |
+| [python_db_process.md](python_db_process.md) | Database usage |
+| [advanced_python_1.md](advanced_python_1.md) | Comprehensions |
+| [advanced_python_2.md](advanced_python_2.md) | map, filter, reduce |
 
-### How to use this repo 🤔
+---
 
-- Clone this repo to your local machine.
-- Open the notes in your favorite Markdown editor.
-- Read the notes and practice the examples.
-
-### How to contribute 🤝
-
-- Fork this repo.
-- Add your notes.
-- Create a pull request.
-
-### Thanks for reading 🙏
-
-- If you like this repo, please give it a star. 🌟
+[← Kitaplık ana sayfası](../library/README.md) · [Depo kökü](../readme.md)

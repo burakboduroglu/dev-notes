@@ -1,28 +1,15 @@
-### About Java-Notes 🚀👩‍🚀
+### About Java-Notes 🚀
 
-- This is a collection of Java notes.
-- The notes are written in Markdown format.
+Kişisel Java notları — Markdown formatında düzenlenmiştir.
 
 ### Table of Contents 📚
 
-| File Name                                                                                                                     | Topics                               |
-| ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| [jpa_hibernate.md](https://github.com/burakboduroglu/Programming-Notes/blob/main/Java-Notes/jpa_hibernate.md)                 | Hibernate Annotations Examples       |
-| [lombok.md](https://github.com/burakboduroglu/Programming-Notes/blob/main/Java-Notes/lombok.md)                               | Lombok Annotations Examples          |
-| [spring_boot_framework.md](https://github.com/burakboduroglu/Programming-Notes/blob/main/Java-Notes/spring_boot_framework.md) | Spring Boot Annatations and Examples |
+| File Name | Topics |
+| --------- | ------ |
+| [jpa_hibernate.md](jpa_hibernate.md) | Hibernate annotations & examples |
+| [lombok.md](lombok.md) | Lombok annotations & examples |
+| [spring_boot_framework.md](spring_boot_framework.md) | Spring Boot annotations & examples |
 
-### How to use this repo 🤔
+---
 
-- Clone this repo to your local machine.
-- Open the notes in your favorite Markdown editor.
-- Read the notes and practice the examples.
-
-### How to contribute 🤝
-
-- Fork this repo.
-- Add your notes.
-- Create a pull request.
-
-### Thanks for reading 🙏
-
-- If you like this repo, please give it a star. 🌟
+[← Kitaplık ana sayfası](../library/README.md) · [Depo kökü](../readme.md)

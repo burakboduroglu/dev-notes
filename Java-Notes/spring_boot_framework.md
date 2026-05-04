@@ -224,9 +224,4 @@ public class BrandsController{
 
 ---
 
-- You can visit each project by clicking on the links below.
-
-* -> [Java-Camp-2022](https://github.com/BurakBoduroglu/Kodlama.ioHM/tree/main/Java-Camp-2022) <-
-
-* ✅ If you like this article, you can give me a star on. 😎
-  Thanks for reading. 🙏
+* ✅ Beğendiyseniz depoya yıldız verebilirsiniz. Okuduğunuz için teşekkürler.

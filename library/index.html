@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevNotes — Kitaplık</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f1117'/%3E%3Crect x='6' y='8' width='14' height='2' rx='1' fill='%236c8ef5'/%3E%3Crect x='6' y='13' width='20' height='2' rx='1' fill='%234a5568'/%3E%3Crect x='6' y='18' width='16' height='2' rx='1' fill='%234a5568'/%3E%3Ccircle cx='26' cy='24' r='5' fill='%236c8ef5'/%3E%3Ccircle cx='26' cy='24' r='2.5' fill='%230f1117'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3250;
+      --accent: #6c8ef5;
+      --accent2: #a78bfa;
+      --text: #e2e8f0;
+      --muted: #8892b0;
+      --tag-java: #f89820;
+      --tag-js: #f7df1e;
+      --tag-py: #3776ab;
+      --tag-sql: #336791;
+      --tag-mongo: #4db33d;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+    .logo span { color: var(--accent); }
+
+    .search-wrap {
+      flex: 1;
+      max-width: 420px;
+      position: relative;
+    }
+    .search-wrap input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 0.55rem 1rem 0.55rem 2.4rem;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-wrap input:focus { border-color: var(--accent); }
+    .search-wrap svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ── Filter chips ── */
+    .filters {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.75rem;
+    }
+    .chip {
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--text); }
+    .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* ── Section heading ── */
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      margin-top: 2rem;
+    }
+    .section-title:first-of-type { margin-top: 0; }
+
+    /* ── Cards grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: border-color 0.2s, transform 0.15s;
+      text-decoration: none;
+      color: inherit;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .tag-java  { background: #f8982022; color: var(--tag-java); }
+    .tag-js    { background: #f7df1e22; color: #c9b800; }
+    .tag-py    { background: #3776ab22; color: #6baed6; }
+    .tag-sql   { background: #33679122; color: #74b0d4; }
+    .tag-mongo { background: #4db33d22; color: #6fcf60; }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .card-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .card-path {
+      font-size: 0.72rem;
+      color: var(--border);
+      font-family: monospace;
+      margin-top: auto;
+    }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--muted);
+      display: none;
+    }
+    .empty svg { margin-bottom: 1rem; opacity: 0.4; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">dev<span>notes</span></div>
+  <div class="search-wrap">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" id="search" placeholder="Not ara…" autocomplete="off" />
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="filters" id="filters">
+    <div class="chip active" data-filter="all">Tümü</div>
+    <div class="chip" data-filter="java">Java</div>
+    <div class="chip" data-filter="js">JavaScript</div>
+    <div class="chip" data-filter="py">Python</div>
+    <div class="chip" data-filter="sql">SQL</div>
+    <div class="chip" data-filter="mongo">MongoDB</div>
+  </div>
+
+  <div id="catalog"></div>
+
+  <div class="empty" id="empty">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <p>Sonuç bulunamadı.</p>
+  </div>
+
+</div>
+
+<footer>
+  Burak Boduroğlu · <a href="../readme.md">readme.md</a> · Mayıs 2026
+</footer>
+
+<script>
+  const NOTES = [
+    // ── Java ──
+    {
+      category: "java",
+      title: "Lombok",
+      desc: "Lombok anotasyonları ve kullanım örnekleri",
+      path: "../Java-Notes/lombok.md",
+      section: "Java"
+    },
+    {
+      category: "java",
+      title: "JPA / Hibernate",
+      desc: "Hibernate anotasyonları ve ORM örnekleri",
+      path: "../Java-Notes/jpa_hibernate.md",
+      section: "Java"
+    },
+    {
+      category: "java",
+      title: "Spring Boot",
+      desc: "Spring Boot anotasyonları ve uygulama örnekleri",
+      path: "../Java-Notes/spring_boot_framework.md",
+      section: "Java"
+    },
+    // ── JavaScript ──
+    {
+      category: "js",
+      title: "Dizi Metodları",
+      desc: "map, filter, reduce ve diğer JS dizi metodları",
+      path: "../Javascript-Notes/javascirpt_array_methods.md",
+      section: "JavaScript"
+    },
+    {
+      category: "js",
+      title: "Closure, Currying, Compose",
+      desc: "Fonksiyonel JS kavramları",
+      path: "../Javascript-Notes/closures_currying_compose.md",
+      section: "JavaScript"
+    },
+    {
+      category: "js",
+      title: "Async JS",
+      desc: "Fetch API, Promise, async/await",
+      path: "../Javascript-Notes/async_js.md",
+      section: "JavaScript"
+    },
+    {
+      category: "js",
+      title: "Regex (1)",
+      desc: "Düzenli ifadeler — temel kalıplar",
+      path: "../Javascript-Notes/regex_part_1.md",
+      section: "JavaScript"
+    },
+    // ── Python ──
+    {
+      category: "py",
+      title: "Python Temel 1",
+      desc: "Veri yapıları: list, dict, tuple, set",
+      path: "../Python-Notes/python_basic_1.md",
+      section: "Python"
+    },
+    {
+      category: "py",
+      title: "Python Temel 2",
+      desc: "Fonksiyonlar, döngüler, koşullar",
+      path: "../Python-Notes/python_basic_2.md",
+      section: "Python"
+    },
+    {
+      category: "py",
+      title: "Python Temel 3",
+      desc: "Hata yönetimi, dosya işlemleri",
+      path: "../Python-Notes/python_basic_3.md",
+      section: "Python"
+    },
+    {
+      category: "py",
+      title: "Python İleri 1",
+      desc: "List / dict / set comprehension",
+      path: "../Python-Notes/advanced_python_1.md",
+      section: "Python"
+    },
+    {
+      category: "py",
+      title: "Python İleri 2",
+      desc: "map, filter, reduce, lambda",
+      path: "../Python-Notes/advanced_python_2.md",
+      section: "Python"
+    },
+    {
+      category: "py",
+      title: "Python Veritabanı",
+      desc: "psycopg2, SQLite, veritabanı işlemleri",
+      path: "../Python-Notes/python_db_process.md",
+      section: "Python"
+    },
+    // ── SQL ──
+    {
+      category: "sql",
+      title: "SQL Temel 1",
+      desc: "SELECT, INSERT, UPDATE, DELETE",
+      path: "../SQL-Notes/sql_basic_1.md",
+      section: "SQL"
+    },
+    {
+      category: "sql",
+      title: "SQL Temel 2",
+      desc: "WHERE, AND, OR, LIKE, IN, BETWEEN",
+      path: "../SQL-Notes/sql_basic_2.md",
+      section: "SQL"
+    },
+    {
+      category: "sql",
+      title: "SQL İleri",
+      desc: "JOIN, GROUP BY, HAVING, subquery",
+      path: "../SQL-Notes/sql_advanced_1.md",
+      section: "SQL"
+    },
+    {
+      category: "sql",
+      title: "psql Terminal",
+      desc: "PostgreSQL komut satırı kullanımı",
+      path: "../SQL-Notes/psql_on_terminal.md",
+      section: "SQL"
+    },
+    // ── MongoDB ──
+    {
+      category: "mongo",
+      title: "MongoDB Temel 1",
+      desc: "CRUD işlemleri, sorgular, operatörler",
+      path: "../MongoDB-Notes/mongodb_basic_1.md",
+      section: "MongoDB"
+    },
+  ];
+
+  const TAG_LABELS = { java: "Java", js: "JS", py: "Python", sql: "SQL", mongo: "Mongo" };
+
+  let activeFilter = "all";
+  let searchQuery  = "";
+
+  function render() {
+    const catalog = document.getElementById("catalog");
+    const empty   = document.getElementById("empty");
+    catalog.innerHTML = "";
+
+    const filtered = NOTES.filter(n => {
+      const matchCat = activeFilter === "all" || n.category === activeFilter;
+      const q = searchQuery.toLowerCase();
+      const matchQ = !q || n.title.toLowerCase().includes(q) || n.desc.toLowerCase().includes(q) || n.section.toLowerCase().includes(q);
+      return matchCat && matchQ;
+    });
+
+    if (filtered.length === 0) {
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+
+    // Group by section
+    const sections = [...new Set(filtered.map(n => n.section))];
+    sections.forEach(sec => {
+      const h = document.createElement("div");
+      h.className = "section-title";
+      h.textContent = sec;
+      catalog.appendChild(h);
+
+      const grid = document.createElement("div");
+      grid.className = "grid";
+
+      filtered.filter(n => n.section === sec).forEach(note => {
+        const a = document.createElement("a");
+        a.className = "card";
+        a.href = note.path;
+        a.innerHTML = `
+          <div class="card-top">
+            <span class="tag tag-${note.category}">${TAG_LABELS[note.category]}</span>
+            <span class="card-title">${note.title}</span>
+          </div>
+          <div class="card-desc">${note.desc}</div>
+          <div class="card-path">${note.path.replace("../", "")}</div>
+        `;
+        grid.appendChild(a);
+      });
+
+      catalog.appendChild(grid);
+    });
+  }
+
+  // Filter chips
+  document.getElementById("filters").addEventListener("click", e => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    activeFilter = chip.dataset.filter;
+    render();
+  });
+
+  // Search
+  document.getElementById("search").addEventListener("input", e => {
+    searchQuery = e.target.value;
+    render();
+  });
+
+  render();
+</script>
+</body>
+</html>

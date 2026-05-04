@@ -1,62 +1,156 @@
-<div align="center">
-<h2>🤖 About this repository 🚀👩‍🚀</h2>
-</div>
+<p align="center">
+  <img src="assets/devnotes-logo.svg" alt="devnotes logo" width="180">
+</p>
 
-- This repository is a collection of my personal notes.
-- I am using this repository to keep my notes up to date.
+<p align="center">
+  <strong>devnotes</strong>
+</p>
 
-### Table of Contents 📚
+<h1 align="center">Kişisel Programlama Notları Kitaplığı</h1>
 
-- [📚 Java Notes](https://github.com/burakboduroglu/Programming-Notes/tree/main/Java-Notes)
-- [📚 Javascript Notes](https://github.com/burakboduroglu/Programming-Notes/tree/main/Javascript-Notes)
-- [📚 Python Notes](https://github.com/burakboduroglu/Programming-Notes/tree/main/Python-Notes)
-- [📚 SQL Notes](https://github.com/burakboduroglu/Programming-Notes/tree/main/SQL-Notes)
-- [📚 MongoDB Notes](https://github.com/burakboduroglu/Programming-Notes/tree/main/)
+<p align="center">
+  Java, JavaScript, Python, SQL ve MongoDB notları tek yerde. Markdown odaklı, hızlı aranabilir, CLI ve web arayüzü ile gezilebilir.
+</p>
 
-### ☕ Java Notes
+<p align="center">
+  <strong>Sıfır bağımlılık</strong>
+  &nbsp;·&nbsp;
+  <strong>İnteraktif TUI</strong>
+  &nbsp;·&nbsp;
+  <strong>Tarayıcı tabanlı okuyucu</strong>
+</p>
 
-- In this section, I will share my notes about Java.
-- You can reach more information about Java note you can visit contents table of Java notes.
-- [📃 Content Table of Java Notes](https://github.com/burakboduroglu/Programming-Notes/blob/main/Java-Notes/readme.md)
-- [🌱 Lombok](https://github.com/burakboduroglu/Programming-Notes/blob/main/Java-Notes/lombok.md)
-- [🌱 Hibernate](https://github.com/burakboduroglu/Programming-Notes/blob/main/Java-Notes/jpa_hibernate.md)
-- [🌱 Spring Boot](https://github.com/burakboduroglu/Programming-Notes/blob/main/Java-Notes/spring_boot_framework.md)
+---
 
-### 👾 Javascript Notes
+## Genel Bakış
 
-- In this section, I will share my notes about Javascript.
-- You can reach more information about Javascript note you can visit contents table of Javascript notes.
-- [📃 Content Table of Javascript Notes](https://github.com/burakboduroglu/Programming-Notes/blob/main/Javascript-Notes/readme.md)
-- [🥳 JS Array Methods](https://github.com/burakboduroglu/Programming-Notes/blob/main/Javascript-Notes/javascirpt_array_methods.md)
-- [🥳 Closures, Currying and Compose](https://github.com/burakboduroglu/Programming-Notes/blob/main/Javascript-Notes/closures_currying_compose.md)
-- [🥳 Fetch API, Promise and ASYNC Function](https://github.com/burakboduroglu/Programming-Notes/blob/main/Javascript-Notes/async_js.md)
+devnotes, kişisel çalışma notlarını düzenli bir kitaplık halinde toplar. Her not Markdown formatındadır; istersen terminalden ara, istersen tarayıcıdan oku, istersen editörde aç.
 
-### 🐍 Python Notes
+## Hızlı Bakış
 
-- In this section, I will share my notes about Python.
-- You can reach more information about Python note you can visit contents table of Python notes.
-- [📃 Contents Table of Python Notes](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/readme.md)
-- [🐍 Basics-1](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/python_basic_1.md)
-- [🐍 Basics-2](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/python_basic_2.md)
-- [🐍 Basics-3](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/python_basic_3.md)
-- [🐍 Advanced-1](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/advanced_python_1.md)
-- [🐍 Advanced-2](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/advanced_python_2.md)
-- [🐍 Database Process](https://github.com/burakboduroglu/Programming-Notes/blob/main/Python-Notes/python_db_process.md)
+| Alan       | İçerik                                               |
+| ---------- | ---------------------------------------------------- |
+| Java       | Lombok, JPA / Hibernate, Spring Boot                 |
+| JavaScript | Array metodları, closure, currying, async, regex     |
+| Python     | Temel konular, ileri teknikler, veritabanı işlemleri |
+| SQL        | Temel sorgular, ileri SQL, psql terminal kullanımı   |
+| MongoDB    | Temel CRUD ve sorgulama                              |
 
-### 📊 SQL Notes
+## Kullanım
 
-- In this section, I will share my notes about SQL.
-- You can reach more information about SQL note you can visit contents table of SQL notes.
-- [📃 Contents Table of SQL Notes](https://github.com/burakboduroglu/Programming-Notes/blob/main/SQL-Notes/readme.md)
-- [📊 SQL Basics 1](https://github.com/burakboduroglu/Programming-Notes/blob/main/SQL-Notes/sql_basic_1.md)
-- [📊 SQL Basics 2](https://github.com/burakboduroglu/Programming-Notes/blob/main/SQL-Notes/sql_basic_1.md)
-- [📊 SQL Advanced 1](https://github.com/burakboduroglu/Programming-Notes/blob/main/SQL-Notes/sql_advanced_1.md)
+Node.js kurulu olması yeterlidir; harici paket gerekmez.
 
-### 🍃 MongoDB Notes
+### Tüm notları listele
 
-- In this section, I will share my notes about MongoDB.
-- You can reach more information about MongoDB note you can visit contents table of MongoDB notes.
-- [📃 Contents Table of MongoDB Notes](https://github.com/burakboduroglu/Programming-Notes/blob/main/MongoDB-Notes/readme.md)
-- [🍃 MongoDB Basics 1](https://github.com/burakboduroglu/Programming-Notes/blob/main/MongoDB-Notes/mongodb_basic_1.md)
+```bash
+node library/cli.js
+```
 
-~ Burak Boduroğlu 👾
+### Kategoriye göre filtrele
+
+```bash
+node library/cli.js list --cat java
+node library/cli.js list --cat py --search temel
+```
+
+### Arama yap
+
+```bash
+node library/cli.js search hibernate
+```
+
+### Notu editörde aç
+
+```bash
+node library/cli.js open 3
+```
+
+### İnteraktif TUI
+
+```bash
+node library/cli.js open --tui
+```
+
+TUI içinde:
+
+| Tuş       | Eylem         |
+| --------- | ------------- |
+| ↑ / ↓     | Gezin         |
+| Enter     | Seç / aç      |
+| e         | Editörde aç   |
+| b         | Tarayıcıda aç |
+| Backspace | Geri          |
+| q         | Çık           |
+
+### Web arayüzünü aç
+
+```bash
+node library/cli.js open --editor
+```
+
+Bu komut yerel bir HTTP sunucusu başlatır ve kitaplık arayüzünü varsayılan tarayıcıda açar.
+
+### Tek notu tarayıcıda aç
+
+```bash
+node library/cli.js open --browser 6
+```
+
+Seçilen notu renklendirilmiş Markdown olarak tarayıcıda gösterir.
+
+## Web UI
+
+`library/index.html` dosyası üzerinden çalışan basit bir arayüz vardır.
+
+- Kategori filtreleme
+- Anlık arama
+- Kart üzerinden not detayını görme
+
+## Gereksinimler
+
+- [Node.js](https://nodejs.org) 18 veya üzeri
+
+## Kurulum
+
+```bash
+git clone https://github.com/burakboduroglu/programming_notes.git
+cd programming_notes
+node library/cli.js
+```
+
+## Proje Yapısı
+
+```text
+dev-notes/
+  Java-Notes/
+    lombok.md
+    jpa_hibernate.md
+    spring_boot_framework.md
+  Javascript-Notes/
+    javascirpt_array_methods.md
+    closures_currying_compose.md
+    async_js.md
+    regex_part_1.md
+  Python-Notes/
+    python_basic_1.md  …  python_basic_3.md
+    advanced_python_1.md  advanced_python_2.md
+    python_db_process.md
+  SQL-Notes/
+    sql_basic_1.md  sql_basic_2.md
+    sql_advanced_1.md
+    psql_on_terminal.md
+  MongoDB-Notes/
+    mongodb_basic_1.md
+  library/
+    index.html          Web UI
+    cli.js              CLI aracı
+    README.md           Kitaplık giriş noktası
+```
+
+## Lisans
+
+MIT. Ayrıntılar için [LICENSE](LICENSE.md) dosyasına bakın.
+
+---
+
+<p align="center">Burak Boduroğlu</p>
