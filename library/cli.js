@@ -556,20 +556,29 @@ function mdToHtml(md) {
 
 /** Satır içi Markdown formatlaması (bold, italic, inline code, link) */
 function inlineFormat(text) {
-  return text
-    // Inline kod — önce işle, içeriği korumak için
-    .replace(/`([^`]+)`/g, (_, code) => {
-      const esc = code.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-      return `<code>${esc}</code>`;
-    })
-    // Bold + italic
+  // 1. Inline kodu çıkar — içerik escape edilip <code> ile sarmalanır, token bırakılır
+  const tokens = [];
+  let out = text.replace(/`([^`]+)`/g, (_, code) => {
+    const esc = code.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    tokens.push(`<code>${esc}</code>`);
+    return `\x00T${tokens.length - 1}\x00`;
+  });
+
+  // 2. Geri kalan metni HTML escape et (XSS surface kapatılır)
+  out = out.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  // 3. Markdown markup uygula — link href'i şema beyaz listesinden geçiriyoruz
+  out = out
     .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
-    // Bold
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    // Italic
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    // Link
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
+      const safe = /^(https?:|\/|#|mailto:)/i.test(href) ? href : "#";
+      return `<a href="${safe}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+    });
+
+  // 4. Token'ları geri yerleştir
+  return out.replace(/\x00T(\d+)\x00/g, (_, i) => tokens[Number(i)] || "");
 }
 
 function buildNoteHtml(note, mdContent) {
