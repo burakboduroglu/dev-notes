@@ -690,12 +690,14 @@ function cmdTUI() {
   }
 
   // ── Sabitler ──────────────────────────────────────────────────────────────
+  // Variation Selector-16 (️) bazı emoji'leri text→emoji presentation'a zorlar
+  // Böylece tüm icon'lar 2-cell genişlikte render olur, hizalama bozulmaz
   const CATS = [
-    { key: "java",  label: "Java",       icon: "☕", color: "yellow",  desc: "Spring Boot · JPA · Lombok" },
-    { key: "js",    label: "JavaScript", icon: "⚡", color: "cyan",    desc: "Async · Closure · Regex · Array" },
-    { key: "py",    label: "Python",     icon: "🐍", color: "blue",    desc: "Temel · İleri · Veritabanı" },
-    { key: "sql",   label: "SQL",        icon: "🗄", color: "magenta", desc: "Temel · İleri · psql Terminal" },
-    { key: "mongo", label: "MongoDB",    icon: "🍃", color: "green",   desc: "CRUD · Sorgular · Operatörler" },
+    { key: "java",  label: "Java",       icon: "☕️", color: "yellow",  desc: "Spring Boot · JPA · Lombok" },
+    { key: "js",    label: "JavaScript", icon: "⚡️", color: "cyan",    desc: "Async · Closure · Regex · Array" },
+    { key: "py",    label: "Python",     icon: "🐍",       color: "blue",    desc: "Temel · İleri · Veritabanı" },
+    { key: "sql",   label: "SQL",        icon: "🗄️", color: "magenta", desc: "Temel · İleri · psql Terminal" },
+    { key: "mongo", label: "MongoDB",    icon: "🍃",       color: "green",   desc: "CRUD · Sorgular · Operatörler" },
   ];
 
   const ASCII = [
