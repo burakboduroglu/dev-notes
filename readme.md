@@ -40,38 +40,22 @@ devnotes, kişisel çalışma notlarını düzenli bir kitaplık halinde toplar.
 
 Node.js kurulu olması yeterlidir; harici paket gerekmez.
 
-### Tüm notları listele
+### Komutlar
 
-```bash
-node library/cli.js
-```
+| Komut                                              | Açıklama                                           |
+| -------------------------------------------------- | -------------------------------------------------- |
+| `node library/cli.js`                              | Tüm notları listele                                |
+| `node library/cli.js list --cat java`              | Java kategorisindeki notları göster                |
+| `node library/cli.js list --cat py`                | Python kategorisindeki notları göster              |
+| `node library/cli.js list --cat py --search temel` | Python notları arasında "temel" ara                |
+| `node library/cli.js search hibernate`             | Tüm notlarda "hibernate" araması yap               |
+| `node library/cli.js open 3`                       | 3 numaralı notu editörde aç                        |
+| `node library/cli.js open --tui`                   | İnteraktif TUI modunu başlat                       |
+| `node library/cli.js open --editor`                | Web arayüzünü tarayıcıda aç (HTTP sunucusu başlat) |
+| `node library/cli.js open --browser 6`             | 6 numaralı notu tarayıcıda aç                      |
+| `node library/cli.js help`                         | Yardım bilgilerini göster                          |
 
-### Kategoriye göre filtrele
-
-```bash
-node library/cli.js list --cat java
-node library/cli.js list --cat py --search temel
-```
-
-### Arama yap
-
-```bash
-node library/cli.js search hibernate
-```
-
-### Notu editörde aç
-
-```bash
-node library/cli.js open 3
-```
-
-### İnteraktif TUI
-
-```bash
-node library/cli.js open --tui
-```
-
-TUI içinde:
+### TUI Tuş Kombinasyonları
 
 | Tuş       | Eylem         |
 | --------- | ------------- |
@@ -81,22 +65,6 @@ TUI içinde:
 | b         | Tarayıcıda aç |
 | Backspace | Geri          |
 | q         | Çık           |
-
-### Web arayüzünü aç
-
-```bash
-node library/cli.js open --editor
-```
-
-Bu komut yerel bir HTTP sunucusu başlatır ve kitaplık arayüzünü varsayılan tarayıcıda açar.
-
-### Tek notu tarayıcıda aç
-
-```bash
-node library/cli.js open --browser 6
-```
-
-Seçilen notu renklendirilmiş Markdown olarak tarayıcıda gösterir.
 
 ## Web UI
 
