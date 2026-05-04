@@ -1,6 +1,6 @@
 {
   "name": "devnotetr",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "description": "Kişisel programlama notları kitaplığı — Markdown, CLI ve web UI ile.",
   "main": "library/cli.js",
   "bin": {
