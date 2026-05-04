@@ -684,7 +684,7 @@ function cmdServe(flags) {
 //   Ekran 4: Markdown önizleme
 // ─────────────────────────────────────────────────────────────────────────────
 function cmdTUI() {
-  if (!process.stdout.isTTY) {
+  if (!process.stdout.isTTY || !process.stdin.isTTY) {
     console.error(c("red", "  TUI için interaktif terminal gerekli."));
     process.exit(1);
   }
