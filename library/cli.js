@@ -19,7 +19,7 @@
 
 const path     = require("path");
 const fs       = require("fs");
-const { spawn } = require("child_process");
+const { spawn, spawnSync, execSync } = require("child_process");
 const readline = require("readline");
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -234,8 +234,67 @@ ${D("Kategori: java | js | py | sql | mongo")}
 // Sistem açma yardımcıları
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Linux: text/markdown veya text/plain için kayıtlı default handler'ın
+ * .desktop dosya yolunu çözer. xdg-open içerik sniff'i yapıp .md dosyalarını
+ * Python (text/x-script.python) gibi tespit edebildiği için bu kestirme
+ * MIME tipini zorlayarak doğru editörü bulur.
+ */
+function resolveLinuxTextHandler() {
+  if (process.platform !== "linux") return null;
+  const opts = { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] };
+  // text/plain öncelikli — kullanıcının genel editörünü tutar.
+  // text/markdown çoğu sistemde özel markdown viewer'a (OnlyOffice gibi)
+  // bağlı olabilir; bu istenmiyorsa DEVNOTE_EDITOR env var ile override edilir.
+  let desktop = "";
+  try { desktop = execSync("xdg-mime query default text/plain", opts).trim(); } catch {}
+  if (!desktop) {
+    try { desktop = execSync("xdg-mime query default text/markdown", opts).trim(); } catch {}
+  }
+  if (!desktop) return null;
+  const home = process.env.HOME || "";
+  const dirs = [
+    `${home}/.local/share/applications`,
+    "/usr/share/applications",
+    "/usr/local/share/applications",
+    "/var/lib/flatpak/exports/share/applications",
+    `${home}/.local/share/flatpak/exports/share/applications`,
+  ];
+  for (const d of dirs) {
+    if (!d) continue;
+    const p = path.join(d, desktop);
+    if (fs.existsSync(p)) return p;
+  }
+  return null;
+}
+
 /** Yerel dosya yolu açar (editör, dosya gezgini vb.) */
 function openWithOS(absPath) {
+  // 1. Env var override — sadece DEVNOTE_EDITOR.
+  // VISUAL/EDITOR çoğu sistemde terminal editör (nano/vim) için ayarlı,
+  // GUI launcher yerine onu spawn etmek sessiz başarısızlığa neden olur.
+  const editor = process.env.DEVNOTE_EDITOR;
+  if (editor) {
+    try {
+      const parts = editor.split(/\s+/).filter(Boolean);
+      const child = spawn(parts[0], [...parts.slice(1), absPath], { detached: true, stdio: "ignore" });
+      child.unref();
+      return;
+    } catch {}
+  }
+
+  // 2. Linux: MIME content sniff bypass — text/markdown handler'ını zorla
+  if (process.platform === "linux") {
+    const desktopFile = resolveLinuxTextHandler();
+    if (desktopFile) {
+      try {
+        const r = spawnSync("gio", ["launch", desktopFile, absPath], { stdio: "ignore" });
+        if (r.status === 0) return;
+      } catch {}
+    }
+  }
+
+  // 3. Platform fallback (xdg-open / open / start)
   try {
     const child = process.platform === "win32"
       ? spawn("cmd", ["/c", "start", "", absPath], { detached: true, stdio: "ignore", windowsHide: true })
