@@ -354,6 +354,7 @@ function startServer(startPath, port, options = {}) {
     if (req.method !== "GET") { res.writeHead(405); res.end(); return; }
 
     let reqPath = url.parse(req.url).pathname;
+    if (!reqPath) { res.writeHead(400); res.end("bad request"); return; }
     // Kök isteği → kitaplık ana sayfası
     if (reqPath === "/") reqPath = "/library/index.html";
 
@@ -388,8 +389,14 @@ function startServer(startPath, port, options = {}) {
       return;
     }
 
-    // Statik dosya
-    const absPath = path.join(ROOT, reqPath.replace(/^\//, ""));
+    // Statik dosya — path traversal'a karşı ROOT prefix kontrolü
+    const absPath = path.resolve(ROOT, "." + reqPath);
+    const rootPrefix = ROOT.endsWith(path.sep) ? ROOT : ROOT + path.sep;
+    if (absPath !== ROOT && !absPath.startsWith(rootPrefix)) {
+      res.writeHead(403);
+      res.end("403 — forbidden");
+      return;
+    }
     if (!fs.existsSync(absPath) || fs.statSync(absPath).isDirectory()) {
       res.writeHead(404);
       res.end(`404 — ${reqPath}`);
