@@ -775,7 +775,8 @@ function cmdTUI() {
   // ── Ortak header ──────────────────────────────────────────────────────────
   function drawHeader() {
     hideCursor();
-    process.stdout.write("\x1b[H");
+    // Home + full clear — önceki ekranın artık satırlarını temizler
+    process.stdout.write("\x1b[H\x1b[2J");
     const w = W();
     // ASCII art — sığmıyorsa kısa başlık
     if (w >= 76) {
@@ -953,7 +954,8 @@ function cmdTUI() {
   function drawPreview(clear = false) {
     hideCursor();
     disableWrap();
-    process.stdout.write(clear ? "\x1b[2J\x1b[H" : "\x1b[H");
+    // Full clear her zaman — kısa satır → uzun satır geçişinde leftover olmaz
+    process.stdout.write("\x1b[H\x1b[2J");
     const note = activeNote;
     const w = W();
     const h = H();
@@ -982,7 +984,6 @@ function cmdTUI() {
   }
 
   // ── İlk çizim ─────────────────────────────────────────────────────────────
-  process.stdout.write("\x1b[2J\x1b[H");
   drawLang();
 
   // ── Klavye olayları ───────────────────────────────────────────────────────
