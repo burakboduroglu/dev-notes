@@ -1,14 +1,27 @@
 {
-  "name": "devnotes",
-  "version": "2.0.0",
+  "name": "devnotetr",
+  "version": "2.0.2",
   "description": "Kişisel programlama notları kitaplığı — Markdown, CLI ve web UI ile.",
   "main": "library/cli.js",
   "bin": {
-    "devnote": "./library/cli.js"
+    "devnote": "library/cli.js"
   },
+  "files": [
+    "Java-Notes",
+    "Javascript-Notes",
+    "MongoDB-Notes",
+    "Python-Notes",
+    "SQL-Notes",
+    "assets",
+    "library",
+    "CONTRIBUTING.md"
+  ],
   "scripts": {
     "start": "node library/cli.js",
     "dev": "node library/cli.js open --editor"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "notes",
@@ -25,7 +38,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/burakboduroglu/programming_notes.git"
+    "url": "git+https://github.com/burakboduroglu/dev-notes.git"
+  },
+  "homepage": "https://github.com/burakboduroglu/dev-notes#readme",
+  "bugs": {
+    "url": "https://github.com/burakboduroglu/dev-notes/issues"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -90,7 +90,7 @@ Açıklama metni...
 
 ```bash
 git clone <your-fork>
-cd programming_notes
+cd dev-notes
 npm install
 npm link  # devnotes komutunu global olarak test etmek için
 ```

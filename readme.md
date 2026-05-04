@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>devnotes</strong>
+  <strong>devnote</strong>
 </p>
 
 <h1 align="center">Kişisel Programlama Notları Kitaplığı</h1>
@@ -20,11 +20,17 @@
   <strong>Tarayıcı tabanlı okuyucu</strong>
 </p>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/devnotetr"><img src="https://img.shields.io/npm/v/devnotetr.svg" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/devnotetr"><img src="https://img.shields.io/npm/dm/devnotetr.svg" alt="npm downloads"></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/npm/l/devnotetr.svg" alt="license"></a>
+</p>
+
 ---
 
 ## Genel Bakış
 
-devnotes, kişisel çalışma notlarını düzenli bir kitaplık halinde toplar. Her not Markdown formatındadır; istersen terminalden ara, istersen tarayıcıdan oku, istersen editörde aç.
+devnote, kişisel çalışma notlarını düzenli bir kitaplık halinde toplar. Her not Markdown formatındadır; istersen terminalden ara, istersen tarayıcıdan oku, istersen editörde aç.
 
 ## Hızlı Bakış
 
@@ -81,10 +87,11 @@ Node.js kurulu olması yeterlidir; harici paket gerekmez.
 ## Kurulum
 
 ```bash
-git clone https://github.com/burakboduroglu/programming_notes.git
-cd programming_notes
+npm install -g devnotetr
 devnote help
 ```
+
+Paket sayfası: [npmjs.com/package/devnotetr](https://www.npmjs.com/package/devnotetr)
 
 ## Proje Yapısı
 
