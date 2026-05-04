@@ -42,18 +42,17 @@ Node.js kurulu olması yeterlidir; harici paket gerekmez.
 
 ### Komutlar
 
-| Komut                                              | Açıklama                                           |
-| -------------------------------------------------- | -------------------------------------------------- |
-| `node library/cli.js`                              | Tüm notları listele                                |
-| `node library/cli.js list --cat java`              | Java kategorisindeki notları göster                |
-| `node library/cli.js list --cat py`                | Python kategorisindeki notları göster              |
-| `node library/cli.js list --cat py --search temel` | Python notları arasında "temel" ara                |
-| `node library/cli.js search hibernate`             | Tüm notlarda "hibernate" araması yap               |
-| `node library/cli.js open 3`                       | 3 numaralı notu editörde aç                        |
-| `node library/cli.js open --tui`                   | İnteraktif TUI modunu başlat                       |
-| `node library/cli.js open --editor`                | Web arayüzünü tarayıcıda aç (HTTP sunucusu başlat) |
-| `node library/cli.js open --browser 6`             | 6 numaralı notu tarayıcıda aç                      |
-| `node library/cli.js help`                         | Yardım bilgilerini göster                          |
+| Komut                                      | Açıklama                             |
+| ------------------------------------------ | ------------------------------------ |
+| `devnote help`                             | Komutları göster                     |
+| `devnote list`                             | Tüm notları listele                  |
+| `devnote list --cat java`                  | Java kategorisindeki notları göster  |
+| `devnote list --cat py --search temel`     | Python notları arasında "temel" ara  |
+| `devnote search hibernate`                 | Tüm notlarda "hibernate" araması yap |
+| `devnote open 3`                           | 3 numaralı notu editörde aç          |
+| `devnote open --tui`                       | İnteraktif TUI modunu başlat         |
+| `devnote open --editor`                    | Web arayüzünü tarayıcıda aç          |
+| `devnote open --browser 6`                 | 6 numaralı notu tarayıcıda aç        |
 
 ### TUI Tuş Kombinasyonları
 
@@ -61,6 +60,7 @@ Node.js kurulu olması yeterlidir; harici paket gerekmez.
 | --------- | ------------- |
 | ↑ / ↓     | Gezin         |
 | Enter     | Seç / aç      |
+| p         | Markdown önizle  |
 | e         | Editörde aç   |
 | b         | Tarayıcıda aç |
 | Backspace | Geri          |
@@ -83,7 +83,7 @@ Node.js kurulu olması yeterlidir; harici paket gerekmez.
 ```bash
 git clone https://github.com/burakboduroglu/programming_notes.git
 cd programming_notes
-node library/cli.js
+devnote help
 ```
 
 ## Proje Yapısı

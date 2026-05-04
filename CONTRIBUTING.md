@@ -86,6 +86,15 @@ Açıklama metni...
    ```
 5. **Pull Request** - GitHub'da pull request açın ve açık bir açıklama verin
 
+## Lokal Kurulum (Geliştirme)
+
+```bash
+git clone <your-fork>
+cd programming_notes
+npm install
+npm link  # devnotes komutunu global olarak test etmek için
+```
+
 ## Dosya Adlandırması
 
 - Dosya adları küçük harf ve alt tire kullanın: `advanced_python_1.md`

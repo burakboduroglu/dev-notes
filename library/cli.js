@@ -19,8 +19,7 @@
 
 const path     = require("path");
 const fs       = require("fs");
-const os       = require("os");
-const { execSync } = require("child_process");
+const { spawn } = require("child_process");
 const readline = require("readline");
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -43,6 +42,100 @@ const C = {
 };
 const c  = (col, s) => `${C[col] || ""}${s}${C.reset}`;
 const cb = (col, s) => `${C.bold}${C[col] || ""}${s}${C.reset}`;
+
+function renderInline(text) {
+  const code = [];
+  let out = text.replace(/`([^`]+)`/g, (_, value) => {
+    code.push(c("yellow", value));
+    return `\x00CODE${code.length - 1}\x00`;
+  });
+
+  out = out
+    .replace(/\*\*\*(.+?)\*\*\*/g, (_, value) => cb("white", value))
+    .replace(/\*\*(.+?)\*\*/g, (_, value) => cb("white", value))
+    .replace(/\*(.+?)\*/g, (_, value) => c("magenta", value))
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => `${c("cyan", label)} ${c("dim", `(${href})`)}`);
+
+  return out.replace(/\x00CODE(\d+)\x00/g, (_, i) => code[Number(i)] || "");
+}
+
+function renderMarkdownTerminal(md) {
+  const lines = md.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+  const out = [];
+  let inCode = false;
+  let codeLang = "";
+
+  for (const raw of lines) {
+    const line = raw.replace(/\t/g, "  ");
+    const fence = line.match(/^```(.*)$/);
+
+    if (fence) {
+      inCode = !inCode;
+      codeLang = inCode ? fence[1].trim() : "";
+      out.push(c("dim", inCode ? `┌─ code ${codeLang}`.trimEnd() : "└─"));
+      continue;
+    }
+
+    if (inCode) {
+      out.push(c("dim", "│ ") + c("yellow", line || " "));
+      continue;
+    }
+
+    if (!line.trim()) {
+      out.push("");
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,6})\s+(.+)$/);
+    if (heading) {
+      const level = heading[1].length;
+      const title = renderInline(heading[2].trim());
+      const prefix = level <= 2 ? "█" : "◆";
+      const color = level === 1 ? "cyan" : level === 2 ? "blue" : "magenta";
+      out.push(level <= 2 ? "" : c("dim", ""));
+      out.push(cb(color, `${prefix} ${title}`));
+      if (level <= 2) out.push(c("dim", "─".repeat(Math.min(70, Math.max(12, heading[2].length + 4)))));
+      continue;
+    }
+
+    if (/^\s*[-*_]{3,}\s*$/.test(line)) {
+      out.push(c("dim", "─".repeat(70)));
+      continue;
+    }
+
+    const quote = line.match(/^>\s?(.*)$/);
+    if (quote) {
+      out.push(c("blue", "▌ ") + c("dim", renderInline(quote[1])));
+      continue;
+    }
+
+    const unordered = line.match(/^(\s*)[-*+]\s+(.+)$/);
+    if (unordered) {
+      out.push(`${unordered[1]}${c("cyan", "•")} ${renderInline(unordered[2])}`);
+      continue;
+    }
+
+    const ordered = line.match(/^(\s*)(\d+)[.)]\s+(.+)$/);
+    if (ordered) {
+      out.push(`${ordered[1]}${c("cyan", `${ordered[2]}.`)} ${renderInline(ordered[3])}`);
+      continue;
+    }
+
+    if (line.includes("|") && /^\s*\|?[-:|\s]+\|/.test(line)) {
+      out.push(c("dim", line));
+      continue;
+    }
+
+    if (line.includes("|")) {
+      out.push(c("cyan", line));
+      continue;
+    }
+
+    out.push(renderInline(line));
+  }
+
+  return out;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Katalog
@@ -117,51 +210,23 @@ function printSectionHeader(text) {
 }
 
 function printHelp() {
-  const B = (s) => cb("cyan", s);
   const D = (s) => c("dim", s);
   console.log(`
-${cb("white", "devnotes")} ${D("v2")} — kişisel not kitaplığı CLI
-${D("─".repeat(48))}
-
+${cb("white", "devnote")} ${D("v2")} — kişisel not kitaplığı CLI
+${D("─".repeat(58))}
 ${cb("white", "KOMUTLAR")}
 
-  ${B("list")} ${D("[--cat <cat>] [--search <q>]")}
-      Notları listele. Kategori ve/veya arama ile filtrele.
+  ${D("devnote help")}                         ${D("# Komutları gösterir")}
+  ${D("devnote list")}                         ${D("# Tüm notları listeler")}
+  ${D("devnote list --cat java")}              ${D("# Java notlarını listeler")}
+  ${D("devnote list --cat py --search temel")} ${D("# Python notlarında arama yapar")}
+  ${D("devnote search hibernate")}             ${D("# Tüm notlarda arama yapar")}
+  ${D("devnote open 3")}                       ${D("# 3 numaralı notu editörde açar")}
+  ${D("devnote open --tui")}                   ${D("# TUI modunu açar")}
+  ${D("devnote open --editor")}                ${D("# Web arayüzünü açar")}
+  ${D("devnote open --browser 6")}             ${D("# 6 numaralı notu tarayıcıda açar")}
 
-  ${B("open")} ${D("<id>")}
-      Notu varsayılan editörde aç.
-
-  ${B("open --tui")}
-      Interaktif TUI: ok tuşlarıyla gezin, Enter ile aç,
-      / ile ara, q ile çık.
-
-  ${B("open --editor")}
-      Kitaplık web UI'ını (index.html) tarayıcıda aç.
-
-  ${B("open --browser")} ${D("<id>")}
-      Seçilen notu tarayıcıda render edilmiş Markdown olarak aç.
-
-  ${B("search")} ${D("<sorgu>")}
-      Kısayol: list --search <sorgu>
-
-  ${B("help")}
-      Bu yardım ekranı.
-
-${cb("white", "FLAG'LER")}
-
-  ${B("--cat")}    ${D("java | js | py | sql | mongo")}
-  ${B("--search")} ${D("Başlık veya açıklamada arama")}
-
-${cb("white", "ÖRNEKLER")}
-
-  ${D("node library/cli.js")}
-  ${D("node library/cli.js list --cat java")}
-  ${D("node library/cli.js list --cat py --search temel")}
-  ${D("node library/cli.js search hibernate")}
-  ${D("node library/cli.js open 3")}
-  ${D("node library/cli.js open --tui")}
-  ${D("node library/cli.js open --editor")}
-  ${D("node library/cli.js open --browser 6")}
+${D("Kategori: java | js | py | sql | mongo")}
 `);
 }
 
@@ -172,9 +237,12 @@ ${cb("white", "ÖRNEKLER")}
 /** Yerel dosya yolu açar (editör, dosya gezgini vb.) */
 function openWithOS(absPath) {
   try {
-    if (process.platform === "win32")       execSync(`start "" "${absPath}"`);
-    else if (process.platform === "darwin") execSync(`open "${absPath}"`);
-    else                                    execSync(`xdg-open "${absPath}"`);
+    const child = process.platform === "win32"
+      ? spawn("cmd", ["/c", "start", "", absPath], { detached: true, stdio: "ignore", windowsHide: true })
+      : process.platform === "darwin"
+        ? spawn("open", [absPath], { detached: true, stdio: "ignore" })
+        : spawn("xdg-open", [absPath], { detached: true, stdio: "ignore" });
+    child.unref();
   } catch {
     console.log(c("yellow", `  Yol: ${absPath}`));
   }
@@ -183,14 +251,12 @@ function openWithOS(absPath) {
 /** HTTP/HTTPS URL'yi varsayılan tarayıcıda açar */
 function openUrl(url) {
   try {
-    if (process.platform === "win32") {
-      // Windows: start komutu URL için tırnaksız çalışır
-      execSync(`start ${url}`);
-    } else if (process.platform === "darwin") {
-      execSync(`open "${url}"`);
-    } else {
-      execSync(`xdg-open "${url}"`);
-    }
+    const child = process.platform === "win32"
+      ? spawn("cmd", ["/c", "start", "", url], { detached: true, stdio: "ignore", windowsHide: true })
+      : process.platform === "darwin"
+        ? spawn("open", [url], { detached: true, stdio: "ignore" })
+        : spawn("xdg-open", [url], { detached: true, stdio: "ignore" });
+    child.unref();
   } catch {
     console.log(c("yellow", `  URL: ${url}`));
   }
@@ -279,8 +345,9 @@ function mimeType(filePath) {
  * startPath: tarayıcıda açılacak ilk URL path'i (örn. "/library/index.html")
  * Sunucu Ctrl+C ile kapatılana kadar çalışır.
  */
-function startServer(startPath, port) {
+function startServer(startPath, port, options = {}) {
   port = port || 7700;
+  const shouldOpenBrowser = options.openBrowser !== false;
 
   const server = http.createServer((req, res) => {
     // Sadece GET
@@ -336,18 +403,28 @@ function startServer(startPath, port) {
     const targetUrl = `http://localhost:${port}${startPath}`;
     console.log(c("green",  `  ✓ Server başladı → ${targetUrl}`));
     console.log(c("dim",    `  Durdurmak için Ctrl+C`));
-    openUrl(targetUrl);
+    if (shouldOpenBrowser) openUrl(targetUrl);
   });
 
   server.on("error", (err) => {
     if (err.code === "EADDRINUSE") {
       console.log(c("yellow", `  Port ${port} meşgul, ${port + 1} deneniyor…`));
-      startServer(startPath, port + 1);
+      startServer(startPath, port + 1, options);
     } else {
       console.error(c("red", `  Server hatası: ${err.message}`));
       process.exit(1);
     }
   });
+}
+
+function startServerDetached(startPath) {
+  const child = spawn(process.execPath, [__filename, "serve", "--path", startPath], {
+    cwd: ROOT,
+    detached: true,
+    stdio: "ignore",
+    windowsHide: true,
+  });
+  child.unref();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -359,8 +436,9 @@ function cmdOpenEditor() {
     console.error(c("red", "  library/index.html bulunamadı."));
     process.exit(1);
   }
-  console.log(c("dim", "  HTTP server başlatılıyor…"));
-  startServer("/library/index.html");
+  startServerDetached("/library/index.html");
+  console.log(c("green", "  ✓ Web UI bağımsız başlatıldı."));
+  console.log(c("dim", "  Terminali kullanmaya devam edebilirsin."));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -566,8 +644,15 @@ function cmdOpenBrowser(idArg) {
     process.exit(1);
   }
 
-  console.log(c("dim", `  HTTP server başlatılıyor: ${note.title}`));
-  startServer(`/library/note.html?id=${note.id}`);
+  startServerDetached(`/library/note.html?id=${note.id}`);
+  console.log(c("green", `  ✓ Tarayıcı bağımsız başlatıldı: ${note.title}`));
+  console.log(c("dim", "  Terminali kullanmaya devam edebilirsin."));
+}
+
+function cmdServe(flags) {
+  const startPath = flags.path || "/library/index.html";
+  const port = flags.port ? parseInt(flags.port, 10) : 7700;
+  startServer(String(startPath), Number.isFinite(port) ? port : 7700);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -601,22 +686,54 @@ function cmdTUI() {
   ];
 
   // ── State ─────────────────────────────────────────────────────────────────
-  // screen: "lang" | "notes" | "detail"
+  // screen: "lang" | "notes" | "detail" | "preview"
   let screen     = "lang";
   let langCursor = 0;
   let noteCursor = 0;
   let activeCat  = null;   // seçilen kategori key'i
   let activeNote = null;   // seçilen note objesi
+  let previewLines = [];
+  let previewScroll = 0;
+  let statusMsg = "";
 
   const W = () => process.stdout.columns || 80;
+  const H = () => process.stdout.rows || 30;
+  let cursorHidden = false;
+  let wrapDisabled = false;
 
   // ── readline / raw mode ───────────────────────────────────────────────────
   const rl = readline.createInterface({ input: process.stdin });
   readline.emitKeypressEvents(process.stdin);
   if (process.stdin.setRawMode) process.stdin.setRawMode(true);
 
+  function hideCursor() {
+    if (!cursorHidden) {
+      process.stdout.write("\x1b[?25l");
+      cursorHidden = true;
+    }
+  }
+
+  function showCursor() {
+    if (wrapDisabled) {
+      process.stdout.write("\x1b[?7h");
+      wrapDisabled = false;
+    }
+    if (cursorHidden) {
+      process.stdout.write("\x1b[?25h");
+      cursorHidden = false;
+    }
+  }
+
+  function disableWrap() {
+    if (!wrapDisabled) {
+      process.stdout.write("\x1b[?7l");
+      wrapDisabled = true;
+    }
+  }
+
   function cleanup(msg) {
     if (process.stdin.setRawMode) process.stdin.setRawMode(false);
+    showCursor();
     rl.close();
     process.stdout.write("\x1b[2J\x1b[H");
     if (msg) process.stdout.write(msg + "\n\n");
@@ -624,7 +741,8 @@ function cmdTUI() {
 
   // ── Ortak header ──────────────────────────────────────────────────────────
   function drawHeader() {
-    process.stdout.write("\x1b[2J\x1b[H");
+    hideCursor();
+    process.stdout.write("\x1b[H");
     const w = W();
     // ASCII art — sığmıyorsa kısa başlık
     if (w >= 76) {
@@ -638,6 +756,10 @@ function cmdTUI() {
     }
     process.stdout.write(c("dim", "  kişisel programlama notları kitaplığı") + "\n");
     process.stdout.write(c("dim", "  " + "─".repeat(Math.min(w - 2, 72))) + "\n");
+  }
+
+  function finishDraw() {
+    process.stdout.write("\x1b[J");
   }
 
   // ── EKRAN 1: Dil seçimi ───────────────────────────────────────────────────
@@ -679,6 +801,7 @@ function cmdTUI() {
     process.stdout.write("\n");
     process.stdout.write(c("dim", "  " + "─".repeat(Math.min(w - 2, 72))) + "\n");
     process.stdout.write(c("dim", "  open --editor → web UI  ·  open --browser <id> → tarayıcı render\n"));
+    finishDraw();
   }
 
   // ── EKRAN 2: Not listesi ──────────────────────────────────────────────────
@@ -721,6 +844,7 @@ function cmdTUI() {
 
     process.stdout.write("\n");
     process.stdout.write(c("dim", "  " + "─".repeat(Math.min(w - 2, 72))) + "\n");
+    finishDraw();
   }
 
   // ── EKRAN 3: Not detayı ───────────────────────────────────────────────────
@@ -755,13 +879,69 @@ function cmdTUI() {
 
     process.stdout.write("\n");
     process.stdout.write(c("dim", "  " + "─".repeat(Math.min(w - 2, 72))) + "\n");
-    process.stdout.write(c("dim", "  ") + cb("white", "e") + c("dim", " editörde aç  ") +
+    process.stdout.write(c("dim", "  ") + cb("white", "p") + c("dim", " markdown önizle  ") +
+                         cb("white", "e") + c("dim", " editörde aç  ") +
                          cb("white", "b") + c("dim", " tarayıcıda aç  ") +
                          cb("white", "Backspace") + c("dim", " geri  ") +
                          cb("white", "q") + c("dim", " çık") + "\n");
+    if (statusMsg) {
+      process.stdout.write("\n" + c("green", `  ${statusMsg}`) + "\n");
+      statusMsg = "";
+    }
+    finishDraw();
+  }
+
+  function renderMarkdownPreview(note) {
+    const absPath = path.join(ROOT, note.file);
+    if (!fs.existsSync(absPath)) {
+      return [c("red", `Dosya bulunamadı: ${note.file}`)];
+    }
+
+    const md = fs.readFileSync(absPath, "utf8");
+    return renderMarkdownTerminal(md);
+  }
+
+  function previewControlLine() {
+    return c("dim", "  ") + cb("white", "p") + c("dim", " markdown önizle  ") +
+      cb("white", "e") + c("dim", " editörde aç  ") +
+      cb("white", "b") + c("dim", " tarayıcıda aç  ") +
+      cb("white", "Backspace") + c("dim", " geri  ") +
+      cb("white", "q") + c("dim", " çık");
+  }
+
+  function drawPreview(clear = false) {
+    hideCursor();
+    disableWrap();
+    process.stdout.write(clear ? "\x1b[2J\x1b[H" : "\x1b[H");
+    const note = activeNote;
+    const w = W();
+    const h = H();
+    const visibleRows = Math.max(4, h - 7);
+    const maxScroll = Math.max(0, previewLines.length - visibleRows);
+    previewScroll = Math.max(0, Math.min(previewScroll, maxScroll));
+    const clean = (text = "") => {
+      const plain = String(text).replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "");
+      const pad = Math.max(0, w - plain.length);
+      return text + " ".repeat(pad) + "\n";
+    };
+
+    process.stdout.write(clean(cb("white", `  ${note.title}`) + c("dim", "  —  markdown preview")));
+    process.stdout.write(clean(c("dim", "  " + "─".repeat(Math.min(w - 2, 72)))));
+    process.stdout.write(clean(""));
+
+    const page = previewLines.slice(previewScroll, previewScroll + visibleRows);
+    for (let i = 0; i < visibleRows; i++) {
+      process.stdout.write(clean("  " + (page[i] || "")));
+    }
+
+    process.stdout.write(clean(""));
+    process.stdout.write(clean(c("dim", "  " + "─".repeat(Math.min(w - 2, 72)))));
+    process.stdout.write(clean(previewControlLine()));
+    process.stdout.write(clean(c("dim", `  ↑↓ kaydır  ·  ${previewScroll + 1}-${Math.min(previewScroll + visibleRows, previewLines.length)} / ${previewLines.length}`)));
   }
 
   // ── İlk çizim ─────────────────────────────────────────────────────────────
+  process.stdout.write("\x1b[2J\x1b[H");
   drawLang();
 
   // ── Klavye olayları ───────────────────────────────────────────────────────
@@ -773,7 +953,7 @@ function cmdTUI() {
     const isQuit  = str === "q" || str === "Q" || (key.ctrl && key.name === "c");
 
     if (isQuit) {
-      cleanup(c("dim", "  devnotes kapatıldı."));
+      cleanup(c("dim", "  devnote kapatıldı."));
       process.exit(0);
     }
 
@@ -820,13 +1000,22 @@ function cmdTUI() {
         return;
       }
       if (str === "e" || str === "E") {
-        cleanup(c("green", `  ✓ Açılıyor: ${activeNote.title}`));
         cmdOpenId(String(activeNote.id));
+        statusMsg = `✓ Editör bağımsız açıldı: ${activeNote.title}`;
+        drawDetail();
         return;
       }
       if (str === "b" || str === "B") {
-        cleanup(c("green", `  ✓ Tarayıcıda açılıyor: ${activeNote.title}`));
         cmdOpenBrowser(String(activeNote.id));
+        statusMsg = `✓ Tarayıcı bağımsız açıldı: ${activeNote.title}`;
+        drawDetail();
+        return;
+      }
+      if (str === "p" || str === "P") {
+        previewLines = renderMarkdownPreview(activeNote);
+        previewScroll = 0;
+        screen = "preview";
+        drawPreview(true);
         return;
       }
       if (isUp) {
@@ -844,6 +1033,49 @@ function cmdTUI() {
         return;
       }
     }
+
+    // ── Markdown önizleme ekranı ──
+    if (screen === "preview") {
+      if (isBack) {
+        showCursor();
+        screen = "detail";
+        drawDetail();
+        return;
+      }
+      if (str === "e" || str === "E") {
+        cmdOpenId(String(activeNote.id));
+        statusMsg = `✓ Editör bağımsız açıldı: ${activeNote.title}`;
+        showCursor();
+        screen = "detail";
+        drawDetail();
+        return;
+      }
+      if (str === "b" || str === "B") {
+        cmdOpenBrowser(String(activeNote.id));
+        statusMsg = `✓ Tarayıcı bağımsız açıldı: ${activeNote.title}`;
+        showCursor();
+        screen = "detail";
+        drawDetail();
+        return;
+      }
+      if (str === "p" || str === "P") {
+        previewLines = renderMarkdownPreview(activeNote);
+        previewScroll = 0;
+        drawPreview(true);
+        return;
+      }
+      if (isUp) {
+        previewScroll = Math.max(0, previewScroll - 1);
+        drawPreview();
+        return;
+      }
+      if (isDown) {
+        const visibleRows = Math.max(4, H() - 7);
+        previewScroll = Math.min(Math.max(0, previewLines.length - visibleRows), previewScroll + 1);
+        drawPreview();
+        return;
+      }
+    }
   });
 }
 
@@ -852,7 +1084,7 @@ function cmdTUI() {
 // ─────────────────────────────────────────────────────────────────────────────
 const rawArgs      = process.argv.slice(2);
 const { flags, pos } = parseArgs(rawArgs);
-const cmd          = (pos[0] || "list").toLowerCase();
+const cmd          = (pos[0] || "help").toLowerCase();
 
 // --help / -h her yerde çalışsın
 if (flags.help || flags.h) { printHelp(); process.exit(0); }
@@ -868,6 +1100,10 @@ switch (cmd) {
       process.exit(1);
     }
     cmdList({ ...flags, search: pos[1] || flags.search });
+    break;
+
+  case "serve":
+    cmdServe(flags);
     break;
 
   case "open": {

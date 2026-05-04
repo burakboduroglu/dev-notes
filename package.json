@@ -1,0 +1,33 @@
+{
+  "name": "devnotes",
+  "version": "2.0.0",
+  "description": "Kişisel programlama notları kitaplığı — Markdown, CLI ve web UI ile.",
+  "main": "library/cli.js",
+  "bin": {
+    "devnote": "./library/cli.js"
+  },
+  "scripts": {
+    "start": "node library/cli.js",
+    "dev": "node library/cli.js open --editor"
+  },
+  "keywords": [
+    "notes",
+    "programming",
+    "cli",
+    "markdown",
+    "java",
+    "javascript",
+    "python",
+    "sql",
+    "mongodb"
+  ],
+  "author": "Burak Boduroğlu",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/burakboduroglu/programming_notes.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
