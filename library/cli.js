@@ -1115,6 +1115,20 @@ function cmdTUI() {
     }
   });
 
+  // Resize handler — terminal boyutu değişirse aktif ekranı tam yeniden çiz
+  process.stdout.on("resize", () => {
+    if (screen === "lang")         drawLang();
+    else if (screen === "notes")   drawNotes();
+    else if (screen === "detail")  drawDetail();
+    else if (screen === "preview") drawPreview(true);
+  });
+
+  // SIGINT (dış kaynaklı Ctrl+C) — cleanup garanti
+  process.on("SIGINT", () => {
+    cleanup(c("dim", "  devnote kapatıldı."));
+    process.exit(0);
+  });
+
   // Beklenmedik çıkış — terminali geri yükle (raw mode + alt-screen)
   process.on("exit", () => {
     if (cleanedUp) return;
