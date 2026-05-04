@@ -729,6 +729,11 @@ function cmdTUI() {
   readline.emitKeypressEvents(process.stdin);
   if (process.stdin.setRawMode) process.stdin.setRawMode(true);
 
+  // Alt-screen buffer — frame'ler ana terminal scrollback'i kirletmeden çizilir
+  process.stdout.write("\x1b[?1049h");
+
+  let cleanedUp = false;
+
   function hideCursor() {
     if (!cursorHidden) {
       process.stdout.write("\x1b[?25l");
@@ -755,10 +760,15 @@ function cmdTUI() {
   }
 
   function cleanup(msg) {
+    if (cleanedUp) return;
+    cleanedUp = true;
     if (process.stdin.setRawMode) process.stdin.setRawMode(false);
     showCursor();
     rl.close();
-    process.stdout.write("\x1b[2J\x1b[H");
+    process.stdin.removeAllListeners("keypress");
+    process.stdout.removeAllListeners("resize");
+    // Alt-screen'den çık — orijinal terminal buffer'ı geri gelir
+    process.stdout.write("\x1b[?1049l");
     if (msg) process.stdout.write(msg + "\n\n");
   }
 
@@ -1103,6 +1113,13 @@ function cmdTUI() {
         return;
       }
     }
+  });
+
+  // Beklenmedik çıkış — terminali geri yükle (raw mode + alt-screen)
+  process.on("exit", () => {
+    if (cleanedUp) return;
+    if (process.stdin.setRawMode) process.stdin.setRawMode(false);
+    process.stdout.write("\x1b[?25h\x1b[?1049l");
   });
 }
 
