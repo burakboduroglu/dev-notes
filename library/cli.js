@@ -348,6 +348,11 @@ function mimeType(filePath) {
 function startServer(startPath, port, options = {}) {
   port = port || 7700;
   const shouldOpenBrowser = options.openBrowser !== false;
+  options.tries = (options.tries || 0) + 1;
+  if (options.tries > 20 || port > 65535) {
+    console.error(c("red", "  Boş port bulunamadı (20 deneme aşıldı)."));
+    process.exit(1);
+  }
 
   const server = http.createServer((req, res) => {
     // Sadece GET
