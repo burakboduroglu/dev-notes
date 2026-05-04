@@ -656,10 +656,11 @@ function cmdServe(flags) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CMD: open --tui  — 3 ekranlı interaktif TUI
+// CMD: open --tui  — 4 ekranlı interaktif TUI
 //   Ekran 1: Splash + dil seçimi
 //   Ekran 2: Seçilen dilin not listesi
-//   Ekran 3: Seçilen notun detayı
+//   Ekran 3: Seçilen not için açma modu
+//   Ekran 4: Markdown önizleme
 // ─────────────────────────────────────────────────────────────────────────────
 function cmdTUI() {
   if (!process.stdout.isTTY) {
@@ -690,6 +691,7 @@ function cmdTUI() {
   let screen     = "lang";
   let langCursor = 0;
   let noteCursor = 0;
+  let actionCursor = 0;
   let activeCat  = null;   // seçilen kategori key'i
   let activeNote = null;   // seçilen note objesi
   let previewLines = [];
@@ -853,37 +855,38 @@ function cmdTUI() {
     const note = activeNote;
     const cat  = CATS.find(c => c.key === note.cat);
     const w    = W();
+    const actions = [
+      { key: "p", label: "Markdown önizle", desc: "Terminal içinde renkli Markdown okuyucu" },
+      { key: "e", label: "Editörde aç", desc: "Varsayılan editörde bağımsız aç" },
+      { key: "b", label: "Tarayıcıda aç", desc: "Yerel web okuyucuda bağımsız aç" },
+    ];
 
     process.stdout.write("\n");
-    // Başlık kutusu
+    process.stdout.write(cb("white", "  Açma modu seçin") + c("dim", "  —  ↑↓ gezin  Enter seç  Backspace notlara dön  q çık\n\n"));
+
     const titleLine = `  ${cat.icon}  ${note.title}`;
     process.stdout.write(cb(cat.color, titleLine) + "\n");
     process.stdout.write(c("dim", `  ${note.desc}`) + "\n");
+    process.stdout.write(c("dim", `  ${note.file}`) + "\n");
     process.stdout.write(c("dim", "  " + "─".repeat(Math.min(w - 2, 72))) + "\n\n");
 
-    // Dosya bilgisi
-    process.stdout.write(c("dim",   "  Dosya   ") + c("cyan",  note.file) + "\n");
-    process.stdout.write(c("dim",   "  ID      ") + c("white", String(note.id)) + "\n");
-    process.stdout.write(c("dim",   "  Kategori") + c(cat.color, `  ${cat.icon}  ${cat.label}`) + "\n");
+    actions.forEach((action, i) => {
+      const selected = i === actionCursor;
+      const line = `  ${selected ? "▶" : " "}  [${action.key}] ${action.label.padEnd(18)} ${action.desc}`;
+      process.stdout.write(selected ? "\x1b[7m" + cb("white", line) + "  \x1b[27m\n" : c("dim", line) + "\n");
+    });
 
-    // Dosya var mı?
     const absPath = path.join(ROOT, note.file);
     const exists  = fs.existsSync(absPath);
+    process.stdout.write("\n");
+    process.stdout.write(c("dim", "  " + "─".repeat(Math.min(w - 2, 72))) + "\n");
     if (exists) {
       const stat    = fs.statSync(absPath);
       const sizeKb  = (stat.size / 1024).toFixed(1);
       const mtime   = stat.mtime.toLocaleDateString("tr-TR");
-      process.stdout.write(c("dim",   "  Boyut   ") + c("white", `${sizeKb} KB`) + "\n");
-      process.stdout.write(c("dim",   "  Güncell.") + c("white", mtime) + "\n");
+      process.stdout.write(c("dim", `  ID ${note.id}  ·  ${cat.label.trim()}  ·  ${sizeKb} KB  ·  Güncell. ${mtime}\n`));
     }
 
-    process.stdout.write("\n");
-    process.stdout.write(c("dim", "  " + "─".repeat(Math.min(w - 2, 72))) + "\n");
-    process.stdout.write(c("dim", "  ") + cb("white", "p") + c("dim", " markdown önizle  ") +
-                         cb("white", "e") + c("dim", " editörde aç  ") +
-                         cb("white", "b") + c("dim", " tarayıcıda aç  ") +
-                         cb("white", "Backspace") + c("dim", " geri  ") +
-                         cb("white", "q") + c("dim", " çık") + "\n");
     if (statusMsg) {
       process.stdout.write("\n" + c("green", `  ${statusMsg}`) + "\n");
       statusMsg = "";
@@ -907,6 +910,13 @@ function cmdTUI() {
       cb("white", "b") + c("dim", " tarayıcıda aç  ") +
       cb("white", "Backspace") + c("dim", " geri  ") +
       cb("white", "q") + c("dim", " çık");
+  }
+
+  function openPreview() {
+    previewLines = renderMarkdownPreview(activeNote);
+    previewScroll = 0;
+    screen = "preview";
+    drawPreview(true);
   }
 
   function drawPreview(clear = false) {
@@ -984,6 +994,7 @@ function cmdTUI() {
       }
       if (isEnter) {
         activeNote = notes[noteCursor];
+        actionCursor = 0;
         screen     = "detail";
         drawDetail();
         return;
@@ -994,10 +1005,24 @@ function cmdTUI() {
 
     // ── Detay ekranı ──
     if (screen === "detail") {
+      const actions = ["p", "e", "b"];
       if (isBack) {
         screen = "notes";
         drawNotes();
         return;
+      }
+      if (isUp) {
+        actionCursor = (actionCursor - 1 + actions.length) % actions.length;
+        drawDetail();
+        return;
+      }
+      if (isDown) {
+        actionCursor = (actionCursor + 1) % actions.length;
+        drawDetail();
+        return;
+      }
+      if (isEnter) {
+        str = actions[actionCursor];
       }
       if (str === "e" || str === "E") {
         cmdOpenId(String(activeNote.id));
@@ -1012,24 +1037,7 @@ function cmdTUI() {
         return;
       }
       if (str === "p" || str === "P") {
-        previewLines = renderMarkdownPreview(activeNote);
-        previewScroll = 0;
-        screen = "preview";
-        drawPreview(true);
-        return;
-      }
-      if (isUp) {
-        const notes = NOTES.filter(n => n.cat === activeCat);
-        const idx   = notes.findIndex(n => n.id === activeNote.id);
-        activeNote  = notes[(idx - 1 + notes.length) % notes.length];
-        drawDetail();
-        return;
-      }
-      if (isDown) {
-        const notes = NOTES.filter(n => n.cat === activeCat);
-        const idx   = notes.findIndex(n => n.id === activeNote.id);
-        activeNote  = notes[(idx + 1) % notes.length];
-        drawDetail();
+        openPreview();
         return;
       }
     }
@@ -1059,9 +1067,7 @@ function cmdTUI() {
         return;
       }
       if (str === "p" || str === "P") {
-        previewLines = renderMarkdownPreview(activeNote);
-        previewScroll = 0;
-        drawPreview(true);
+        openPreview();
         return;
       }
       if (isUp) {

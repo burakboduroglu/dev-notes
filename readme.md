@@ -62,15 +62,21 @@ Node.js kurulu olması yeterlidir; harici paket gerekmez.
 
 ### TUI Tuş Kombinasyonları
 
-| Tuş       | Eylem         |
-| --------- | ------------- |
-| ↑ / ↓     | Gezin         |
-| Enter     | Seç / aç      |
-| p         | Markdown önizle  |
-| e         | Editörde aç   |
-| b         | Tarayıcıda aç |
-| Backspace | Geri          |
-| q         | Çık           |
+`devnote open --tui` akışı üç adımdır:
+
+1. Kategori seç.
+2. Markdown notunu seç.
+3. Açma modunu seç: Markdown önizle, editörde aç veya tarayıcıda aç.
+
+| Tuş       | Eylem                  |
+| --------- | ---------------------- |
+| ↑ / ↓     | Gezin                  |
+| Enter     | Seçili adımı çalıştır  |
+| p         | Markdown önizle        |
+| e         | Editörde aç            |
+| b         | Tarayıcıda aç          |
+| Backspace | Geri                   |
+| q         | Çık                    |
 
 ## Web UI
 
