@@ -19,7 +19,7 @@
 
 const path     = require("path");
 const fs       = require("fs");
-const { spawn } = require("child_process");
+const { spawn, spawnSync, execSync } = require("child_process");
 const readline = require("readline");
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -234,8 +234,67 @@ ${D("Kategori: java | js | py | sql | mongo")}
 // Sistem açma yardımcıları
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Linux: text/markdown veya text/plain için kayıtlı default handler'ın
+ * .desktop dosya yolunu çözer. xdg-open içerik sniff'i yapıp .md dosyalarını
+ * Python (text/x-script.python) gibi tespit edebildiği için bu kestirme
+ * MIME tipini zorlayarak doğru editörü bulur.
+ */
+function resolveLinuxTextHandler() {
+  if (process.platform !== "linux") return null;
+  const opts = { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] };
+  // text/plain öncelikli — kullanıcının genel editörünü tutar.
+  // text/markdown çoğu sistemde özel markdown viewer'a (OnlyOffice gibi)
+  // bağlı olabilir; bu istenmiyorsa DEVNOTE_EDITOR env var ile override edilir.
+  let desktop = "";
+  try { desktop = execSync("xdg-mime query default text/plain", opts).trim(); } catch {}
+  if (!desktop) {
+    try { desktop = execSync("xdg-mime query default text/markdown", opts).trim(); } catch {}
+  }
+  if (!desktop) return null;
+  const home = process.env.HOME || "";
+  const dirs = [
+    `${home}/.local/share/applications`,
+    "/usr/share/applications",
+    "/usr/local/share/applications",
+    "/var/lib/flatpak/exports/share/applications",
+    `${home}/.local/share/flatpak/exports/share/applications`,
+  ];
+  for (const d of dirs) {
+    if (!d) continue;
+    const p = path.join(d, desktop);
+    if (fs.existsSync(p)) return p;
+  }
+  return null;
+}
+
 /** Yerel dosya yolu açar (editör, dosya gezgini vb.) */
 function openWithOS(absPath) {
+  // 1. Env var override — sadece DEVNOTE_EDITOR.
+  // VISUAL/EDITOR çoğu sistemde terminal editör (nano/vim) için ayarlı,
+  // GUI launcher yerine onu spawn etmek sessiz başarısızlığa neden olur.
+  const editor = process.env.DEVNOTE_EDITOR;
+  if (editor) {
+    try {
+      const parts = editor.split(/\s+/).filter(Boolean);
+      const child = spawn(parts[0], [...parts.slice(1), absPath], { detached: true, stdio: "ignore" });
+      child.unref();
+      return;
+    } catch {}
+  }
+
+  // 2. Linux: MIME content sniff bypass — text/markdown handler'ını zorla
+  if (process.platform === "linux") {
+    const desktopFile = resolveLinuxTextHandler();
+    if (desktopFile) {
+      try {
+        const r = spawnSync("gio", ["launch", desktopFile, absPath], { stdio: "ignore" });
+        if (r.status === 0) return;
+      } catch {}
+    }
+  }
+
+  // 3. Platform fallback (xdg-open / open / start)
   try {
     const child = process.platform === "win32"
       ? spawn("cmd", ["/c", "start", "", absPath], { detached: true, stdio: "ignore", windowsHide: true })
@@ -348,12 +407,18 @@ function mimeType(filePath) {
 function startServer(startPath, port, options = {}) {
   port = port || 7700;
   const shouldOpenBrowser = options.openBrowser !== false;
+  options.tries = (options.tries || 0) + 1;
+  if (options.tries > 20 || port > 65535) {
+    console.error(c("red", "  Boş port bulunamadı (20 deneme aşıldı)."));
+    process.exit(1);
+  }
 
   const server = http.createServer((req, res) => {
     // Sadece GET
     if (req.method !== "GET") { res.writeHead(405); res.end(); return; }
 
     let reqPath = url.parse(req.url).pathname;
+    if (!reqPath) { res.writeHead(400); res.end("bad request"); return; }
     // Kök isteği → kitaplık ana sayfası
     if (reqPath === "/") reqPath = "/library/index.html";
 
@@ -388,8 +453,14 @@ function startServer(startPath, port, options = {}) {
       return;
     }
 
-    // Statik dosya
-    const absPath = path.join(ROOT, reqPath.replace(/^\//, ""));
+    // Statik dosya — path traversal'a karşı ROOT prefix kontrolü
+    const absPath = path.resolve(ROOT, "." + reqPath);
+    const rootPrefix = ROOT.endsWith(path.sep) ? ROOT : ROOT + path.sep;
+    if (absPath !== ROOT && !absPath.startsWith(rootPrefix)) {
+      res.writeHead(403);
+      res.end("403 — forbidden");
+      return;
+    }
     if (!fs.existsSync(absPath) || fs.statSync(absPath).isDirectory()) {
       res.writeHead(404);
       res.end(`404 — ${reqPath}`);
@@ -549,20 +620,29 @@ function mdToHtml(md) {
 
 /** Satır içi Markdown formatlaması (bold, italic, inline code, link) */
 function inlineFormat(text) {
-  return text
-    // Inline kod — önce işle, içeriği korumak için
-    .replace(/`([^`]+)`/g, (_, code) => {
-      const esc = code.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-      return `<code>${esc}</code>`;
-    })
-    // Bold + italic
+  // 1. Inline kodu çıkar — içerik escape edilip <code> ile sarmalanır, token bırakılır
+  const tokens = [];
+  let out = text.replace(/`([^`]+)`/g, (_, code) => {
+    const esc = code.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    tokens.push(`<code>${esc}</code>`);
+    return `\x00T${tokens.length - 1}\x00`;
+  });
+
+  // 2. Geri kalan metni HTML escape et (XSS surface kapatılır)
+  out = out.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  // 3. Markdown markup uygula — link href'i şema beyaz listesinden geçiriyoruz
+  out = out
     .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
-    // Bold
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    // Italic
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    // Link
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
+      const safe = /^(https?:|\/|#|mailto:)/i.test(href) ? href : "#";
+      return `<a href="${safe}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+    });
+
+  // 4. Token'ları geri yerleştir
+  return out.replace(/\x00T(\d+)\x00/g, (_, i) => tokens[Number(i)] || "");
 }
 
 function buildNoteHtml(note, mdContent) {
@@ -663,18 +743,20 @@ function cmdServe(flags) {
 //   Ekran 4: Markdown önizleme
 // ─────────────────────────────────────────────────────────────────────────────
 function cmdTUI() {
-  if (!process.stdout.isTTY) {
+  if (!process.stdout.isTTY || !process.stdin.isTTY) {
     console.error(c("red", "  TUI için interaktif terminal gerekli."));
     process.exit(1);
   }
 
   // ── Sabitler ──────────────────────────────────────────────────────────────
+  // Variation Selector-16 (️) bazı emoji'leri text→emoji presentation'a zorlar
+  // Böylece tüm icon'lar 2-cell genişlikte render olur, hizalama bozulmaz
   const CATS = [
-    { key: "java",  label: "Java",       icon: "☕", color: "yellow",  desc: "Spring Boot · JPA · Lombok" },
-    { key: "js",    label: "JavaScript", icon: "⚡", color: "cyan",    desc: "Async · Closure · Regex · Array" },
-    { key: "py",    label: "Python",     icon: "🐍", color: "blue",    desc: "Temel · İleri · Veritabanı" },
-    { key: "sql",   label: "SQL",        icon: "🗄", color: "magenta", desc: "Temel · İleri · psql Terminal" },
-    { key: "mongo", label: "MongoDB",    icon: "🍃", color: "green",   desc: "CRUD · Sorgular · Operatörler" },
+    { key: "java",  label: "Java",       icon: "☕️", color: "yellow",  desc: "Spring Boot · JPA · Lombok" },
+    { key: "js",    label: "JavaScript", icon: "⚡️", color: "cyan",    desc: "Async · Closure · Regex · Array" },
+    { key: "py",    label: "Python",     icon: "🐍",       color: "blue",    desc: "Temel · İleri · Veritabanı" },
+    { key: "sql",   label: "SQL",        icon: "🗄️", color: "magenta", desc: "Temel · İleri · psql Terminal" },
+    { key: "mongo", label: "MongoDB",    icon: "🍃",       color: "green",   desc: "CRUD · Sorgular · Operatörler" },
   ];
 
   const ASCII = [
@@ -708,6 +790,11 @@ function cmdTUI() {
   readline.emitKeypressEvents(process.stdin);
   if (process.stdin.setRawMode) process.stdin.setRawMode(true);
 
+  // Alt-screen buffer — frame'ler ana terminal scrollback'i kirletmeden çizilir
+  process.stdout.write("\x1b[?1049h");
+
+  let cleanedUp = false;
+
   function hideCursor() {
     if (!cursorHidden) {
       process.stdout.write("\x1b[?25l");
@@ -734,17 +821,23 @@ function cmdTUI() {
   }
 
   function cleanup(msg) {
+    if (cleanedUp) return;
+    cleanedUp = true;
     if (process.stdin.setRawMode) process.stdin.setRawMode(false);
     showCursor();
     rl.close();
-    process.stdout.write("\x1b[2J\x1b[H");
+    process.stdin.removeAllListeners("keypress");
+    process.stdout.removeAllListeners("resize");
+    // Alt-screen'den çık — orijinal terminal buffer'ı geri gelir
+    process.stdout.write("\x1b[?1049l");
     if (msg) process.stdout.write(msg + "\n\n");
   }
 
   // ── Ortak header ──────────────────────────────────────────────────────────
   function drawHeader() {
     hideCursor();
-    process.stdout.write("\x1b[H");
+    // Home + full clear — önceki ekranın artık satırlarını temizler
+    process.stdout.write("\x1b[H\x1b[2J");
     const w = W();
     // ASCII art — sığmıyorsa kısa başlık
     if (w >= 76) {
@@ -922,7 +1015,8 @@ function cmdTUI() {
   function drawPreview(clear = false) {
     hideCursor();
     disableWrap();
-    process.stdout.write(clear ? "\x1b[2J\x1b[H" : "\x1b[H");
+    // Full clear her zaman — kısa satır → uzun satır geçişinde leftover olmaz
+    process.stdout.write("\x1b[H\x1b[2J");
     const note = activeNote;
     const w = W();
     const h = H();
@@ -951,7 +1045,6 @@ function cmdTUI() {
   }
 
   // ── İlk çizim ─────────────────────────────────────────────────────────────
-  process.stdout.write("\x1b[2J\x1b[H");
   drawLang();
 
   // ── Klavye olayları ───────────────────────────────────────────────────────
@@ -1082,6 +1175,27 @@ function cmdTUI() {
         return;
       }
     }
+  });
+
+  // Resize handler — terminal boyutu değişirse aktif ekranı tam yeniden çiz
+  process.stdout.on("resize", () => {
+    if (screen === "lang")         drawLang();
+    else if (screen === "notes")   drawNotes();
+    else if (screen === "detail")  drawDetail();
+    else if (screen === "preview") drawPreview(true);
+  });
+
+  // SIGINT (dış kaynaklı Ctrl+C) — cleanup garanti
+  process.on("SIGINT", () => {
+    cleanup(c("dim", "  devnote kapatıldı."));
+    process.exit(0);
+  });
+
+  // Beklenmedik çıkış — terminali geri yükle (raw mode + alt-screen)
+  process.on("exit", () => {
+    if (cleanedUp) return;
+    if (process.stdin.setRawMode) process.stdin.setRawMode(false);
+    process.stdout.write("\x1b[?25h\x1b[?1049l");
   });
 }
 
