@@ -154,8 +154,6 @@ dev-notes/
 
 ## Katkıda Bulunanlar
 
-Bu depo şu anda ağırlıklı olarak tek kişi tarafından sürdürülüyor; yine de katkı listesi zamanla büyüyebilir.
-
 <p align="center">
   <a href="https://github.com/burakboduroglu/dev-notes/graphs/contributors">
     <img src="https://contrib.rocks/image?repo=burakboduroglu/dev-notes" alt="contributors">
